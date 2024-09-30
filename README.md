@@ -2,6 +2,8 @@
 
 This is a simple web application created using **TypeScript** that fetches user data from the **GitHub API**. The app allows users to search for GitHub usernames and displays relevant profile information in a card layout.
 
+This project is hosted at https://rownok35.github.io/TypeScriptGitSearch/
+
 ## Features
 
 - **GitHub API Integration**: Fetches GitHub user profiles using the [GitHub API](https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28).
