@@ -1,0 +1,8 @@
+├── css/
+│   └── style.css        # CSS styles for the app
+├── dist/
+│   └── index.js         # Compiled JavaScript from TypeScript
+├── index.html           # Main HTML file
+├── index.ts             # TypeScript code
+├── README.md            # Project documentation
+└── tsconfig.json        # TypeScript configuration
