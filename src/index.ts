@@ -1,9 +1,9 @@
+// Element selections
 const getUsername = document.querySelector("#user") as HTMLInputElement;
 const formSubmit = document.querySelector("#form") as HTMLFormElement;
 const main_container = document.querySelector(".main_container") as HTMLElement;
 
-// subscribe to thapa technical
-// so lets define the contract of an object
+// Interface definition for UserData
 interface UserData {
   id: number;
   login: string;
@@ -12,84 +12,80 @@ interface UserData {
   url: string;
 }
 
-// reusable fun
-async function myCustomFetcher<T>(
-  url: string,
-  options?: RequestInit
-): Promise<T> {
-  const response = await fetch(url, options);
+// Caching GitHub user data
+let cachedUserData: UserData[] = [];
 
+// Reusable fetcher function
+async function myCustomFetcher<T>(url: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(url, options);
   if (!response.ok) {
-    throw new Error(
-      ` Network response was not ok - status: ${response.status}`
-    );
+    throw new Error(`Network response was not ok - status: ${response.status}`);
   }
-  const data = await response.json();
-  //   console.log(data);
-  return data;
+  return await response.json();
 }
 
-// let display the card UI
-const showResultUI = (singleUser: UserData) => {
-  const { avatar_url, login, url } = singleUser;
-  const formattedLogin = login.charAt(0).toUpperCase() + login.slice(1);
-  main_container.insertAdjacentHTML(
-    "beforeend",
-    `<div class='card'> 
-    <img src=${avatar_url} alt=${login} />
-    <hr />
-    <p style="text-align: right; color: white; font-size: 16px;">${formattedLogin}</p>
-    <div class="card-footer">
-      <img src="${avatar_url}" alt="${login}" /> 
-      <a href="${url}"> Github </a>
-    </div>
-    </div>
-    `
-  );
+// Function to display the card UI
+const showResultUI = (users: UserData[]) => {
+  // Accumulate HTML string
+  const cardsHTML = users.map((user) => {
+    const { avatar_url, login, url } = user;
+    const formattedLogin = login.charAt(0).toUpperCase() + login.slice(1);
+
+    return `
+      <div class='card'> 
+        <img src="${avatar_url}" alt="${login}" />
+        <hr />
+        <p style="text-align: right; color: white; font-size: 16px;">${formattedLogin}</p>
+        <div class="card-footer">
+          <img src="${avatar_url}" alt="${login}" /> 
+          <a href="${url}" target="_blank">GitHub</a>
+        </div>
+      </div>`;
+  }).join(""); // Join all HTML strings into one
+
+  // Insert all at once
+  main_container.insertAdjacentHTML("beforeend", cardsHTML);
 };
 
-// subscribe to thapa technical
-
-function fetchUserData(url: string) {
-  myCustomFetcher<UserData[]>(url, {}).then((userInfo) => {
-    for (const singleUser of userInfo) {
-      showResultUI(singleUser);
-      // console.log("login " + singleUser.login);
-    }
-  });
+// Function to fetch user data
+async function fetchUserData(url: string) {
+  try {
+    cachedUserData = await myCustomFetcher<UserData[]>(url);
+    showResultUI(cachedUserData);
+  } catch (error) {
+    main_container.insertAdjacentHTML(
+      "beforeend",
+      `<p class="error-msg">Failed to load users. Please try again later.</p>`
+    );
+    console.error(error);
+  }
 }
-// default fun call
+
+// Default function call to fetch all users
 fetchUserData("https://api.github.com/users");
 
-// let perform search fun
-formSubmit.addEventListener("submit", async (e) => {
+// Search functionality on form submit
+formSubmit.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  const searchTerm = getUsername.value.toLowerCase();
+  const searchTerm = getUsername.value.trim().toLowerCase();
+  main_container.innerHTML = ""; // Clear previous results
 
-  try {
-    const url = "https://api.github.com/users";
+  if (!searchTerm) {
+    // If search term is empty, display all users
+    showResultUI(cachedUserData);
+    return;
+  }
 
-    const allUserData = await myCustomFetcher<UserData[]>(url, {});
+  // Filter users by search term
+  const matchingUsers = cachedUserData.filter(user => user.login.toLowerCase().includes(searchTerm));
 
-    const matchingUsers = allUserData.filter((user) => {
-      return user.login.toLowerCase().includes(searchTerm);
-    });
-
-    // we need to clear the previous data
-    main_container.innerHTML = "";
-
-    if (matchingUsers.length === 0) {
-      main_container?.insertAdjacentHTML(
-        "beforeend",
-        `<p class="empty-msg">No matching users found.</p>`
-      );
-    } else {
-      for (const singleUser of matchingUsers) {
-        showResultUI(singleUser);
-      }
-    }
-  } catch (error) {
-    console.log(error);
+  if (matchingUsers.length === 0) {
+    main_container.insertAdjacentHTML(
+      "beforeend",
+      `<p class="empty-msg">No matching users found.</p>`
+    );
+  } else {
+    showResultUI(matchingUsers);
   }
 });
