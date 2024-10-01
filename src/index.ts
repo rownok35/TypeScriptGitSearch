@@ -32,12 +32,13 @@ async function myCustomFetcher<T>(
 // let display the card UI
 const showResultUI = (singleUser: UserData) => {
   const { avatar_url, login, url } = singleUser;
+  const formattedLogin = login.charAt(0).toUpperCase() + login.slice(1);
   main_container.insertAdjacentHTML(
     "beforeend",
     `<div class='card'> 
     <img src=${avatar_url} alt=${login} />
     <hr />
-    <p style="text-align: right; color: white; font-size: 16px;">${login}</p>
+    <p style="text-align: right; color: white; font-size: 16px;">${formattedLogin}</p>
     <div class="card-footer">
       <img src="${avatar_url}" alt="${login}" /> 
       <a href="${url}"> Github </a>
